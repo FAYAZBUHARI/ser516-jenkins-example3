@@ -8,20 +8,21 @@ pipeline {
             }
         }
 
-        stage('Install') {
+        stage('Install + Test (venv)') {
             steps {
                 sh '''
-                    python3 --version || python --version
-                    python3 -m pip install --upgrade pip || python -m pip install --upgrade pip
-                    python3 -m pip install -e . pytest || python -m pip install -e . pytest
-                '''
-            }
-        }
+                    set -e
+                    python3 --version
 
-        stage('Test') {
-            steps {
-                sh '''
-                    python3 -m pytest -v || python -m pytest -v
+                    # Create and use a virtual environment (avoids PEP 668 system pip restrictions)
+                    python3 -m venv .venv
+                    . .venv/bin/activate
+
+                    python -m pip install --upgrade pip
+                    python -m pip install -e .
+                    python -m pip install pytest
+
+                    python -m pytest -v
                 '''
             }
         }
